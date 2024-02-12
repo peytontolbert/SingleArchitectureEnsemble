@@ -1,5 +1,5 @@
 from transformers import ViTConfig, ViTForImageClassification, ViTImageProcessor
-from SAEv2 import ViTSAE
+from SAE.SAEv2 import ViTSAE
 import torch
 from torchvision import transforms
 from PIL import Image

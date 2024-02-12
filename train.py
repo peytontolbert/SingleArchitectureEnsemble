@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from transformers import ViTConfig
-from SAE import ViTSAE
+from sae.sae import ViTSAE
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
