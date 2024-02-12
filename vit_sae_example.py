@@ -1,29 +1,32 @@
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from transformers import ViTModel, ViTConfig
+from transformers import ViTConfig
 from sae.saev2 import ConcatenatedInputViTSAE
 
-# Example usage:
-# Initialize the ViT configuration
-vit_config = ViTConfig()
+
+# Define the configuration for the ViT model
+config = ViTConfig()
 
 # Specify the number of classes for classification
-num_classes = 10
+num_classes = 10  # Example: CIFAR-10 dataset
 
-# Specify the number of early exits
+# Specify the number of early exits to be added
+
 num_early_exits = 3
 
-# Specify the number of inputs to concatenate
-num_inputs = 2
+num_inputs = 2 
 
-# Create the model
-model = ConcatenatedInputViTSAE(vit_config, num_classes, num_early_exits, num_inputs)
+# Initialize the ViTSAE model
+vit_sae_model = ConcatenatedInputViTSAE(config, num_classes, num_early_exits, num_inputs)
 
-# Dummy inputs for testing
-input1 = torch.randn(1, 256, 768)  # Example input for one image
-input2 = torch.randn(1, 256, 768)  # Example input for another image
+# Example input tensor (batch_size, channels, height, width)
+# Assuming the input size matches what ViT expects, e.g., 3x224x224 for ImageNet
+input_tensor1 = torch.rand(5, 3, 224, 224)  # Example: batch of 5 images
+input_tensor2 = torch.rand(5, 3, 224, 224)
 
-# Forward pass with concatenated inputs
-outputs, exit_probs = model([input1, input2])
+
+# Forward pass through the model
+final_output, exit_probs = vit_sae_model([input_tensor1, input_tensor2])
+
+# Print the final output and exit probabilities
+print("Final Output Shape:", final_output.shape)  # Should match (batch_size, num_classes)
+print("Exit Probabilities:", exit_probs)
