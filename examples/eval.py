@@ -1,5 +1,5 @@
 from transformers import ViTConfig, ViTForImageClassification, ViTImageProcessor
-from SAEv2 import ViTSAE
+from SAE.SAEv2 import ViTSAE
 import torch
 from torchvision import transforms
 from PIL import Image
@@ -55,14 +55,21 @@ for img_t, img_file in zip(images, os.listdir(image_dir)):
         print("Predicted class index:", predicted_class_idx)
         print("Predicted label:", predicted_label)
 # Example usage
+<<<<<<< HEAD:examples/eval.py
 print(len(classes))
 num_classes = len(classes)  # example number of classes
+=======
+>>>>>>> dd180d6d16c1736a30f11c715d0b40d00f127053:examplev2.py
 config = ViTConfig(
     image_size=224,
     num_hidden_layers=12,
     hidden_size=768,
     num_attention_heads=12,
+<<<<<<< HEAD:examples/eval.py
     num_labels=predicted_class_idx,
+=======
+    num_labels=20,
+>>>>>>> dd180d6d16c1736a30f11c715d0b40d00f127053:examplev2.py
 )
 model = ViTSAE(config, num_classes=20, num_early_exits=20)
 images_tensor = torch.stack(images)
