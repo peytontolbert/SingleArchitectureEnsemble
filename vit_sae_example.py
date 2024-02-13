@@ -28,5 +28,6 @@ input_tensor2 = torch.rand(5, 3, 224, 224)
 final_output, exit_probs = vit_sae_model([input_tensor1, input_tensor2])
 
 # Print the final output and exit probabilities
+print(final_output, exit_probs)
 print("Final Output Shape:", final_output.shape)  # Should match (batch_size, num_classes)
 print("Exit Probabilities:", exit_probs)

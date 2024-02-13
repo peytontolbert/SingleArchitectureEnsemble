@@ -67,6 +67,13 @@ class ConcatenatedInputViTSAE(ViTSAE):
         exit_probs = F.softmax(self.exit_logits / temperature, dim=0)
 
         for input_tensor in inputs:
+            
+            # print(f"input tensor before unsqueeze {input_tensor.shape}")
+
+            input_tensor = input_tensor.unsqueeze(0)
+
+            # print(f"input tensor after unsqueeze {input_tensor.shape}")
+
             hidden_states = self.vit(input_tensor).last_hidden_state
             for i, exit_layer in enumerate(self.early_exits):
                 if len(outputs) <= i:
