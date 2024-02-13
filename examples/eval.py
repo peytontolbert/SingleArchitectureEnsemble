@@ -6,42 +6,45 @@ from PIL import Image
 import os
 import json
 import requests
+
 # Directory containing images
-image_dir = './images'
+image_dir = "./images"
 model2 = ViTForImageClassification.from_pretrained("google/vit-base-patch16-224")
 feature_extractor = ViTImageProcessor.from_pretrained("google/vit-base-patch16-224")
 model2.eval()
-with open('imagenet_classes.json', 'r') as f:
+with open("imagenet_classes.json", "r") as f:
     idx_to_label = [json.load(f)]
 # Transformation pipeline
-transform = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
+transform = transforms.Compose(
+    [
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
 # Load and transform images
 images = []
 for img_file in sorted(os.listdir(image_dir)):
-    if img_file.endswith(('.png', '.jpg', '.jpeg')):
+    if img_file.endswith((".png", ".jpg", ".jpeg")):
         img_path = os.path.join(image_dir, img_file)
-        img = Image.open(img_path).convert('RGB')  # Ensure image is RGB
+        img = Image.open(img_path).convert("RGB")  # Ensure image is RGB
         img_t = transform(img)
         images.append(img_t)
 classes = []
 # Classify images with the pre-trained model (model2)
 for img_t, img_file in zip(images, os.listdir(image_dir)):
-    if img_file.endswith(('.png', '.jpg', '.jpeg')):
+    if img_file.endswith((".png", ".jpg", ".jpeg")):
         image = Image.open(os.path.join(image_dir, img_file)).convert("RGB")
         # Add batch dimension and classify
         img_t = img_t.unsqueeze(0)  # Add batch dimension
         inputs = feature_extractor(images=image, return_tensors="pt")
         with torch.no_grad():  # No need to track gradients
             outputs2 = model2(**inputs)
-        
+
         logits = outputs2.logits
         predicted_class_idx = logits.argmax(-1).item()
-      
+
         # Optionally, print the predicted class (if id2label is available)
         predicted_label = (
             model2.config.id2label[predicted_class_idx]
@@ -52,12 +55,20 @@ for img_t, img_file in zip(images, os.listdir(image_dir)):
         print("Predicted class index:", predicted_class_idx)
         print("Predicted label:", predicted_label)
 # Example usage
-config = ViTConfig(image_size=224, num_hidden_layers=12, hidden_size=768, num_attention_heads=12, num_labels=20)
+print(len(classes))
+num_classes = len(classes)  # example number of classes
+config = ViTConfig(
+    image_size=224,
+    num_hidden_layers=12,
+    hidden_size=768,
+    num_attention_heads=12,
+    num_labels=predicted_class_idx,
+)
 model = ViTSAE(config, num_classes=20, num_early_exits=20)
 images_tensor = torch.stack(images)
 # Example input tensor (batch size, channels, height, width)
 outputs, exit_indices = model(images_tensor)
-
+print(outputs.shape)
 # outputs contain the predictions
 # exit_indices indicates at which early exit (or final layer) the prediction was made
 
@@ -67,14 +78,20 @@ probabilities = torch.softmax(outputs, dim=-1)
 # Determine the predicted class for each image
 _, predicted_classes = torch.max(probabilities, dim=1)
 
-print(f"Output shape: {outputs.shape}, Exit probabilities: {exit_indices}")
+print(
+    f"Output shape: {outputs.shape}, Exit probabilities: {exit_indices.shape}, Predicted classes: {predicted_classes.shape}"
+)
 
 # Additional insights from your custom model
 for i, img_file in enumerate(os.listdir(image_dir)):
-    if img_file.endswith(('.png', '.jpg', '.jpeg')):
+    if img_file.endswith((".png", ".jpg", ".jpeg")):
         # Directly using class index as class name for custom model predictions; adjust if you have a specific mapping
         custom_class_name = f"Custom Class {predicted_classes[i].item()}"
-        exit_point = exit_indices[i]  # This might need adjustment based on your model's output structure
-        
+        exit_point = exit_indices[
+            i
+        ]  # This might need adjustment based on your model's output structure
+
         # Print combined insights
-        print(f"Image: {img_file}, Custom Model Predicted: {custom_class_name}, Exit Point: {exit_point}")
+        print(
+            f"Image: {img_file}, Custom Model Predicted: {custom_class_name}, Exit Point: {exit_point}"
+        )
