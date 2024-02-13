@@ -51,11 +51,14 @@ class ViTSAE(nn.Module):
         final_output = combined_output.sum(dim=0)
 
         return final_output, exit_probs
+    
+
+
 
 class ConcatenatedInputViTSAE(ViTSAE):
-    def __init__(self, config, num_classes, num_early_exits, num_inputs):
+    def __init__(self, config, num_classes, num_early_exits):
         super().__init__(config, num_classes, num_early_exits)
-        self.num_inputs = num_inputs
+        
 
     def forward(self, inputs, temperature=None):
         # Adjusted method to handle inputs without increasing channel dimension incorrectly
@@ -66,20 +69,18 @@ class ConcatenatedInputViTSAE(ViTSAE):
         outputs = []
         exit_probs = F.softmax(self.exit_logits / temperature, dim=0)
 
-        for input_tensor in inputs:
-            
-            # print(f"input tensor before unsqueeze {input_tensor.shape}")
+        # print(f"input tensor before unsqueeze {input_tensor.shape}")
 
-            input_tensor = input_tensor.unsqueeze(0)
+        # input_tensor = input_tensor.unsqueeze(0)
 
-            # print(f"input tensor after unsqueeze {input_tensor.shape}")
+        # print(f"input tensor after unsqueeze {input_tensor.shape}")
 
-            hidden_states = self.vit(input_tensor).last_hidden_state
-            for i, exit_layer in enumerate(self.early_exits):
-                if len(outputs) <= i:
-                    outputs.append([])
-                exit_input = hidden_states[:, 0]  # Use the [CLS] token's representation
-                outputs[i].append(exit_layer(exit_input))
+        hidden_states = self.vit(inputs).last_hidden_state
+        for i, exit_layer in enumerate(self.early_exits):
+            if len(outputs) <= i:
+                outputs.append([])
+            exit_input = hidden_states[:, 0]  # Use the [CLS] token's representation
+            outputs[i].append(exit_layer(exit_input))
 
         # Aggregate outputs from each input
         aggregated_outputs = []
@@ -91,3 +92,4 @@ class ConcatenatedInputViTSAE(ViTSAE):
         final_output = combined_output.sum(dim=0)
 
         return final_output, exit_probs
+    
